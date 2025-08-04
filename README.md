@@ -1,7 +1,7 @@
-# Polyrhythmia
+# FluidHarmonics
 `A modular, generative polyrhythmic arpeggiator`
 
-**Polyrhythmia** is a Python-based generative arpeggiator and audio synthesizer that renders a 64-bar, multi-layered harmonic progression with modal modulations and algorithmic textures. It blends music theory with synthesis and gives you a full ambient progression directly rendered to `.wav` or played live.
+**FluidHarmonics** is a Python-based generative arpeggiator and audio synthesizer that renders a 64-bar, multi-layered harmonic progression with modal modulations and algorithmic textures. It blends music theory with synthesis and gives you a full ambient progression directly rendered to `.wav` or played live.
 
 ---
 
@@ -39,7 +39,7 @@ pip install -r requirements.txt
 Simply run the script:
 
 ```bash
-python polyrhythmia.py
+python fluidHarmonics.py
 ```
 
 - A `.wav` file named `song.wav` will be generated.
@@ -50,24 +50,13 @@ python polyrhythmia.py
 
 ## 🧠 Musical Structure
 
-The piece is divided into four parts:
-
-1. **Invocation** – E minor modal incantation
-2. **Spiral Ascent** – Bright G major ascent through modal cycles
-3. **Fractured Horizons** – Chromatic and modal instability
-4. **Homecoming Reverie** – Resolution and return to E minor
-
-Each section contains 16 chords, with a tempo of **50 BPM** and each chord lasting **2 beats**.
-
----
-
 ## 🎛️ Synth Engine
 
 You can choose between several oscillator styles:
 
-- `synth_note` – Pure sine wave with exponential decay
-- `organ_synth_note` – Additive harmonics and slight vibrato/detuning
-- `square_synth_note` – Detuned square wave with optional envelope
+- `basic_synth` – Pure sine wave with exponential decay
+- `organ_synth` – Additive harmonics and slight vibrato/detuning
+- `square_synth` – Detuned square wave with optional envelope
 
 Modify the function called inside `make_layer_sound()` to change the timbre.
 
@@ -109,7 +98,7 @@ Feel free to:
 
 ## 📁 Output
 
-- `harmonic_journey.wav`: 44.1 kHz stereo file, ~150 seconds long
+- `song.wav`: 44.1 kHz stereo file, ~150 seconds long
 
 ---
 
