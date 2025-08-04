@@ -2,18 +2,17 @@ import numpy as np
 import simpleaudio as sa
 import time
 import random
-import threading
 from mingus.core import chords, notes, scales
 import scipy.io.wavfile
 from scipy.signal import square, butter, sosfilt
 
 # ---------- SETTINGS ----------
 SAMPLE_RATE = 44100
-BPM = 80
+BPM = 120
 SECONDS_PER_BEAT = 60 / BPM
-CHORD_DURATION_BEATS = 2  # Each chord lasts 2 beats
-WINDOW_BEATS = 8
-VOLUME = 0.5
+CHORD_DURATION_BEATS = 4  # Each chord lasts 2 beats
+WINDOW_BEATS = 16
+VOLUME = 0.8
 
 # ---------- CHORD SEQUENCE ----------
 # A 64-bar rich harmonic journey with modulations
@@ -21,7 +20,7 @@ VOLUME = 0.5
 SECTION_KEYS = {
     "I. Invocation": "E minor",
     "II. Ascent": "G major",
-    "III. Disruption": "F major",  # loosely modal
+    "III. Disruption": "F major",
     "IV. Resolution": "E minor"
 }
 
@@ -51,32 +50,6 @@ CHORD_SEQUENCE = [
     "Em", "F#m7b5", "B7", "Em"
 ]
 
-CHORD_SEQUENCE = [
-    # I. Nebula's Whisper - sombre incantation suspendue
-    "Em", "B7", "Em", "Am7",
-    "D7", "Gmaj7", "Cmaj7", "F#7",
-    "Bm7", "E7", "Am7", "D7",
-    "Gmaj7", "F#m7b5", "B7", "Em",
-
-    # II. Spiral Ascent - montée cyclique vers l'éther
-    "Am7", "D7", "Gmaj7", "Cmaj7",
-    "Fmaj7", "Bm7b5", "E7", "Am7",
-    "D7", "Gmaj7", "Cmaj7", "F#7",
-    "Bm7", "E7", "Am7", "D7",
-
-    # III. Fractured Horizons - ruptures et éclats harmoniques
-    "F#m7b5", "B7", "Em7", "A7",
-    "Dm7", "G7", "Cmaj7", "E7",
-    "Am7", "D7", "Gmaj7", "F#7",
-    "Bm7", "E7", "Am7", "B7",
-
-    # IV. Homecoming Reverie - retour, résolution et lumière
-    "Em", "Gmaj7", "F#m7b5", "B7",
-    "Em", "Cmaj7", "Am7", "B7",
-    "Em9", "D7", "Gmaj7", "Em",
-    "F#m7b5", "B7", "Em", "Em"
-]
-
 TOTAL_BEATS = len(CHORD_SEQUENCE) * CHORD_DURATION_BEATS
 
 # ---------- LAYER CONFIGS ----------
@@ -101,7 +74,9 @@ def synth_note(freq, duration, volume):
     fl = int(min(0.005, duration / 2) * SAMPLE_RATE)
     env[:fl] *= np.linspace(0, 1, fl)
     env[-fl:] *= np.linspace(1, 0, fl)
-    return (wave * env * volume).astype(np.float32)
+    wave *= env
+    return (wave * volume).astype(np.float32)
+
 
 def organ_synth_note(freq, duration, volume):
     t = np.linspace(0, duration, int(SAMPLE_RATE * duration), False)
@@ -113,25 +88,25 @@ def organ_synth_note(freq, duration, volume):
     wave1 = (
         1.0 * np.sin(2 * np.pi * freq * (t + vibrato)) +
         0.5 * np.sin(2 * np.pi * freq * 2 * (t + vibrato)) +
-        0.3 * np.sin(2 * np.pi * freq * 3 * (t + vibrato))
-        #0.2 * np.sin(2 * np.pi * freq * 4 * (t + vibrato)) +
-        #0.1 * np.sin(2 * np.pi * freq * 5 * (t + vibrato))
+        0.3 * np.sin(2 * np.pi * freq * 3 * (t + vibrato)) +
+        0.2 * np.sin(2 * np.pi * freq * 4 * (t + vibrato)) +
+        0.1 * np.sin(2 * np.pi * freq * 5 * (t + vibrato))
     )
 
     wave2 = (
         1.0 * np.sin(2 * np.pi * freq * 1.005 * (t + vibrato)) +
-        0.5 * np.sin(2 * np.pi * freq * 2 * 1.005 * (t + vibrato))
-        #0.3 * np.sin(2 * np.pi * freq * 3 * 1.005 * (t + vibrato))
+        0.5 * np.sin(2 * np.pi * freq * 2 * 1.005 * (t + vibrato)) +
+        0.3 * np.sin(2 * np.pi * freq * 3 * 1.005 * (t + vibrato))
     )
 
     wave = 0.5 * (wave1 + wave2)
 
     # Gentle release tail
-    #env = np.ones_like(t)
-    #release_time = 0.1
-    #release_samples = int(SAMPLE_RATE * release_time)
-    #if release_samples < len(env):
-    #    env[-release_samples:] *= np.linspace(1, 0, release_samples)
+    env = np.ones_like(t)
+    release_time = 0.03
+    release_samples = int(SAMPLE_RATE * release_time)
+    if release_samples < len(env):
+        env[-release_samples:] *= np.linspace(1, 0, release_samples)
 
     return (wave * volume).astype(np.float32)
 
@@ -148,13 +123,13 @@ def square_synth_note(freq, duration, volume):
     wave = 0.5 * (wave1 + wave2)
 
     # Apply envelope
-    #env = np.ones_like(t)
-    #release_time = 0.1
-    #release_samples = int(SAMPLE_RATE * release_time)
-    #if release_samples < len(env):
-    #    env[-release_samples:] *= np.linspace(1, 0, release_samples)
+    env = np.ones_like(t)
+    release_time = 0.1
+    release_samples = int(SAMPLE_RATE * release_time)
+    if release_samples < len(env):
+        env[-release_samples:] *= np.linspace(1, 0, release_samples)
 
-    return (wave * volume).astype(np.float32)
+    return (wave * env * volume).astype(np.float32)
 
 
 def lowpass_filter(audio, cutoff_hz, sample_rate, order=5):
@@ -302,7 +277,7 @@ def make_layer_sound(cfg, chord_seq, chord_dur, vol):
                 seq = np.concatenate((seq, np.zeros(int(SAMPLE_RATE * note_dur))))  # Insert silence
                 continue
             f, _ = note_to_freq(n, cfg['octave'])
-            seq = np.concatenate((seq, square_synth_note(f, note_dur, vol)))
+            seq = np.concatenate((seq, synth_note(f, note_dur, vol)))
             last_note = n
     return seq
 
@@ -389,13 +364,13 @@ if __name__ == "__main__":
 
     # Apply master filter
     audio = mix_tracks(layers)
-    audio = lowpass_filter(audio, cutoff_hz=2500, sample_rate=SAMPLE_RATE)
+    audio = lowpass_filter(audio, cutoff_hz=5000, sample_rate=SAMPLE_RATE)
     audio = remove_dc_offset(audio)
     audio /= np.max(np.abs(audio)) + 1e-9  # normalize and prevent div by zero
     audio *= 0.9  # add headroom
 
     # Save to wav file before playing
-    save_to_wav("harmonic_journey.wav", audio, SAMPLE_RATE)
+    save_to_wav("song.wav", audio, SAMPLE_RATE)
 
     # PLay audio
     player = play_buffer(audio)
