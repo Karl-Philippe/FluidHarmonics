@@ -1,5 +1,5 @@
 # Polyrhythmia
-'A modular, generative polyrhythmic arpeggiator'
+`A modular, generative polyrhythmic arpeggiator`
 
 **Polyrhythmia** is a Python-based generative arpeggiator and audio synthesizer that renders a 64-bar, multi-layered harmonic progression with modal modulations and algorithmic textures. It blends music theory with synthesis and gives you a full ambient progression directly rendered to `.wav` or played live.
 
