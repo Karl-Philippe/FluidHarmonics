@@ -28,7 +28,8 @@
 Install dependencies via `pip`:
 
 ```bash
-pip install numpy simpleaudio mingus scipy
+
+pip install -r requirements.txt
 ```
 
 ---
